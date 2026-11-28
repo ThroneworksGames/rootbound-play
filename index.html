@@ -163,7 +163,38 @@ html, body { background: #f08a1c; overscroll-behavior: none; -webkit-user-select
 /* the Rootbound icon on the orange screen while the game engine downloads */
 #status::before { content: ''; position: absolute; left: 50%; top: 42%; width: min(46vw, 260px); aspect-ratio: 1; transform: translate(-50%, -50%); background: url(index.512x512.png) center / contain no-repeat; border-radius: 22%; box-shadow: 0 10px 30px rgba(90, 40, 0, 0.35); }
 </style>
-	<style id="umb-bar-css">
+	<!-- umb-loader -->
+<link rel="preload" as="image" href="loading-p.jpg" media="(max-aspect-ratio: 1/1)" fetchpriority="high">
+<link rel="preload" as="image" href="loading-w.jpg" media="(min-aspect-ratio: 1/1)" fetchpriority="high">
+<style id="umb-loader-css">
+html, body { background: #c99c4f !important; }
+#status { visibility: visible !important; background: #c99c4f url(loading-p.jpg) center / cover no-repeat !important; }
+@media (min-aspect-ratio: 1/1) { #status { background-image: url(loading-w.jpg) !important; } }
+html.umb-wide #status { top: 40px !important; }
+#status::before, #status-splash { display: none !important; }
+#status-progress { -webkit-appearance: none; appearance: none; position: absolute; bottom: calc(4% + env(safe-area-inset-bottom, 0px)) !important; left: 20% !important; right: 20% !important; width: 60% !important; height: 8px; border: 0; border-radius: 99px; background: rgba(0,0,0,.35); overflow: hidden; }
+#status-progress::-webkit-progress-bar { background: rgba(0,0,0,.35); border-radius: 99px; }
+#status-progress::-webkit-progress-value { background: #fff; border-radius: 99px; }
+#status-progress::-moz-progress-bar { background: #fff; border-radius: 99px; }
+</style>
+<script id="umb-loader-js">
+// once the download bar is full the game is still starting up: keep the bar moving so it never looks stuck
+(function () {
+  var t = setInterval(function () {
+    var p = document.getElementById('status-progress');
+    if (!p || !p.isConnected) return clearInterval(t);
+    if (p.max && p.value >= p.max) { p.classList.add('starting'); p.removeAttribute('value'); }
+  }, 150);
+})();
+</script>
+<style>
+#status-progress.starting, #status-progress:indeterminate { background: linear-gradient(90deg, rgba(255,255,255,.25) 0%, #fff 50%, rgba(255,255,255,.25) 100%) 0 0 / 200% 100% !important; animation: umbstart 1.1s linear infinite; }
+#status-progress:indeterminate::-webkit-progress-bar { background: transparent; }
+#status-progress:indeterminate::-moz-progress-bar { background: transparent; }
+@keyframes umbstart { from { background-position: 200% 0; } to { background-position: 0 0; } }
+</style>
+<!-- /umb-loader -->
+<style id="umb-bar-css">
 #umb-bar { display: none; position: fixed; left: 0; right: 0; top: 0; height: 40px; z-index: 5; align-items: center; justify-content: space-between; gap: 12px; padding: 0 10px 0 12px; box-sizing: border-box; background: linear-gradient(180deg, #ffffff, #fbf7f5); border-bottom: 1px solid rgba(0,0,0,.08); box-shadow: 0 2px 10px rgba(0,0,0,.18); font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #2a2733; -webkit-user-select: none; user-select: none; }
 #umb-bar .umb-l { display: flex; align-items: center; gap: 10px; min-width: 0; }
 #umb-bar .umb-home { display: flex; align-items: center; gap: 7px; color: inherit; text-decoration: none; font-weight: 800; font-size: 15px; letter-spacing: -.2px; white-space: nowrap; }
@@ -180,11 +211,16 @@ html, body { background: #f08a1c; overscroll-behavior: none; -webkit-user-select
 #umb-acct.in { background: #fff; color: #2a2733; box-shadow: inset 0 0 0 1.5px #e7e3ec; }
 #umb-acct.in i { background: #e8613c; color: #fff; font-weight: 800; }
 html.umb-wide #umb-bar { display: flex; }
+/* never let the page get wider than the screen (after turning a phone, the game canvas is briefly the old
+   width and Android zooms the whole page out, which shrank the checkout window) */
+html, body { overflow: hidden !important; width: 100% !important; height: 100% !important; margin: 0; }
+#canvas { max-width: 100vw; max-height: 100vh; }
 html.umb-wide #canvas { position: absolute !important; top: 40px !important; left: 0 !important; }
-#umb-tab { display: none; position: fixed; left: 0; top: 38%; z-index: 5; width: 34px; padding: 7px 0 6px; border: 0; border-radius: 0 12px 12px 0; background: rgba(255,255,255,.94); box-shadow: 0 2px 10px rgba(0,0,0,.3); flex-direction: column; align-items: center; gap: 3px; cursor: pointer; font: 800 8.5px/1 system-ui, -apple-system, sans-serif; color: #e8613c; letter-spacing: .1px; -webkit-tap-highlight-color: transparent; }
-#umb-tab svg { width: 22px; height: 22px; }
-#umb-tab.in span { display: none; }
-#umb-tab.in::after { content: ''; position: absolute; right: 5px; top: 6px; width: 7px; height: 7px; border-radius: 50%; background: #2fbf71; box-shadow: 0 0 0 1.5px #fff; }
+#umb-tab { display: none; position: fixed; left: 0; top: 62%; z-index: 5; width: 34px; height: 48px; padding: 0; border: 0; border-radius: 0 10px 10px 0; background: #e8613c; box-shadow: 0 2px 8px rgba(0,0,0,.35); align-items: center; justify-content: center; cursor: pointer; opacity: .92; -webkit-tap-highlight-color: transparent; }
+#umb-tab svg { width: 22px; height: 22px; margin-left: -1px; }
+#umb-tab svg rect { fill: transparent; }
+#umb-tab span { display: none; }
+#umb-tab.in::after { content: ''; position: absolute; right: 3px; top: 4px; width: 8px; height: 8px; border-radius: 50%; background: #2fbf71; box-shadow: 0 0 0 1.5px #fff; }
 html.umb-phone.umb-ready #umb-tab { display: flex; }
 </style>
 <script id="umb-sound-js">
@@ -215,7 +251,11 @@ html.umb-phone.umb-ready #umb-tab { display: flex; }
     });
   }
   ['touchend', 'pointerup', 'pointerdown', 'click', 'keydown'].forEach(function (t) { document.addEventListener(t, wake, true); });
-  document.addEventListener('visibilitychange', function () { if (!document.hidden) wake(); });
+  // Matt, 28 Nov: no sound while the tab is hidden or the browser is minimised; it comes back on return
+  function hush() { ctxs.forEach(function (c) { if (c.state === 'running') { try { c.suspend(); } catch (e) {} } }); }
+  document.addEventListener('visibilitychange', function () { if (document.hidden) hush(); else wake(); });
+  window.addEventListener('pagehide', hush);
+  window.addEventListener('pageshow', function () { if (!document.hidden) wake(); });
 })();
 </script>
 <script id="umb-bar-js">
@@ -243,6 +283,8 @@ html.umb-phone.umb-ready #umb-tab { display: flex; }
   } catch (e) {}
   mark();
   window.addEventListener('resize', mark);
+  // after a turn, put the page back at the top-left at normal size
+  window.addEventListener('orientationchange', function () { setTimeout(function () { window.scrollTo(0, 0); mark(); }, 250); });
 })();
 window.umbrellaAccountState = function (email) {
   var b = document.getElementById('umb-acct'), t = document.getElementById('umb-tab');
@@ -260,8 +302,8 @@ window.umbrellaAccountState = function (email) {
 };
 </script>
 <style id="umb-ui-css">
-.umb-ov { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(14, 10, 24, .62); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; animation: umbFade .18s ease-out; -webkit-user-select: text; user-select: text; touch-action: auto; }
-.umb-card { position: relative; width: 100%; max-width: 400px; max-height: calc(100% - 8px); overflow: auto; background: #fff; color: #1d1b26; border-radius: 22px; box-shadow: 0 24px 60px rgba(0,0,0,.45); animation: umbPop .28s cubic-bezier(.2,1.3,.4,1); }
+.umb-ov { position: fixed; inset: 0; width: 100%; height: 100%; box-sizing: border-box; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(14, 10, 24, .78); overscroll-behavior: contain; -webkit-overflow-scrolling: touch; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; animation: umbFade .18s ease-out; -webkit-user-select: text; user-select: text; touch-action: pan-y; }
+.umb-card { position: relative; touch-action: pan-y; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; width: 100%; box-sizing: border-box; max-width: min(400px, 100%); max-height: calc(100% - 8px); overflow: auto; background: #fff; color: #1d1b26; border-radius: 22px; box-shadow: 0 24px 60px rgba(0,0,0,.45); animation: umbPop .28s cubic-bezier(.2,1.3,.4,1); }
 .umb-hero { position: relative; padding: 22px 22px 54px; background: radial-gradient(120% 90% at 85% 0%, #ffb25b 0%, rgba(255,178,91,0) 60%), linear-gradient(135deg, #f0753f 0%, #e8613c 45%, #c9472a 100%); color: #fff; overflow: hidden; }
 .umb-hero::after { content: ''; position: absolute; right: -40px; top: -40px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,.09); }
 .umb-brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 14px; letter-spacing: .2px; opacity: .95; }
@@ -296,7 +338,8 @@ window.umbrellaAccountState = function (email) {
 .umb-done { text-align: center; padding: 8px 0 6px; }
 .umb-tick { width: 64px; height: 64px; margin: 0 auto 10px; border-radius: 50%; background: #2fbf71; color: #fff; font-size: 34px; font-weight: 900; display: flex; align-items: center; justify-content: center; animation: umbPop .35s cubic-bezier(.2,1.5,.4,1); box-shadow: 0 8px 20px rgba(47,191,113,.4); }
 .umb-shake { animation: umbShake .32s; }
-.umb-pay .umb-card { max-width: 480px; }
+.umb-pay .umb-card { max-width: min(480px, 100%); }
+html.umb-win #canvas { visibility: hidden; }
 .umb-pay .umb-hero { padding: 16px 20px; }
 .umb-pay-mount { min-height: 320px; padding: 6px 6px 10px; }
 .umb-pay-load { display: flex; align-items: center; justify-content: center; height: 300px; }
@@ -310,6 +353,13 @@ window.umbrellaAccountState = function (email) {
 @keyframes umbUp { from { transform: translateY(100%); } }
 @keyframes umbSpin { to { transform: rotate(360deg); } }
 @keyframes umbShake { 25% { transform: translateX(-7px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-3px); } }
+
+.umb-who { display: flex; align-items: center; gap: 14px; padding: 4px 0 16px; }
+.umb-ava { flex: none; width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #f0753f, #c9472a); color: #fff; font-size: 24px; font-weight: 850; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(232,97,60,.35); }
+.umb-who b { display: block; font-size: 16px; color: #1d1b26; word-break: break-all; }
+.umb-who small { display: block; margin-top: 3px; font-size: 13px; color: #2a9d5c; font-weight: 700; }
+.umb-out { width: 100%; margin-top: 12px; padding: 13px; border: 2px solid #ece9f1; border-radius: 14px; background: #fff; color: #6d6980; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+.umb-out:hover { border-color: #e8613c; color: #e8613c; }
 </style>
 <script id="umb-ui-js">
 // UmbrellaSoftware sign-in and checkout windows. The game's Umbrella add-on calls these
@@ -321,7 +371,21 @@ window.umbrellaAccountState = function (email) {
   function el(html) { var d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstChild; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function keep(e) { e.stopPropagation(); }
-  function shield(o) { ['keydown', 'keyup', 'keypress', 'pointerdown', 'pointerup', 'mousedown', 'mouseup', 'touchstart', 'touchend', 'wheel'].forEach(function (t) { o.addEventListener(t, keep); }); }
+  // While one of these windows is open the game behind it is slowed to ~8 frames a second, so the
+  // phone has its power for smooth scrolling (the checkout is long on a phone). It speeds back up on close.
+  var openWins = 0, raf = window.requestAnimationFrame.bind(window);
+  window.requestAnimationFrame = function (cb) {
+    if (!openWins) return raf(cb);
+    return setTimeout(function () { raf(cb); }, 120);
+  };
+  function shield(o) {
+    ['keydown', 'keyup', 'keypress', 'pointerdown', 'pointerup', 'mousedown', 'mouseup', 'touchstart', 'touchend', 'wheel'].forEach(function (t) { o.addEventListener(t, keep, { passive: true }); });
+    openWins++;
+    document.documentElement.classList.add('umb-win');
+    new MutationObserver(function (m, obs) {
+      if (!o.isConnected) { obs.disconnect(); openWins = Math.max(0, openWins - 1); if (!openWins) document.documentElement.classList.remove('umb-win'); }
+    }).observe(document.body, { childList: true });
+  }
   var hero = function (title, sub) {
     return '<div class="umb-top"><div class="umb-hero"><div class="umb-brand">' + LOGO + 'UmbrellaSoftware</div>' +
       '<h2 class="umb-h">' + title + '</h2><p class="umb-sub">' + sub + '</p></div>' +
@@ -430,7 +494,7 @@ window.umbrellaAccountState = function (email) {
       function done(s) { if (closed) return; closed = true; try { co && co.destroy(); } catch (e) {} o.remove(); resolve(s); }
       o.querySelector('.umb-x').onclick = function () { done('closed'); };
       try {
-        if (!window.Stripe) await new Promise(function (ok, bad) { var s = document.createElement('script'); s.src = 'https://js.stripe.com/v3/'; s.onload = ok; s.onerror = bad; document.head.appendChild(s); });
+        if (!window.Stripe) await new Promise(function (ok, bad) { var s = document.getElementById('umb-stripe-js'); var fresh = !s; if (fresh) { s = document.createElement('script'); s.id = 'umb-stripe-js'; s.src = 'https://js.stripe.com/v3/'; } s.addEventListener('load', ok); s.addEventListener('error', bad); if (fresh) document.head.appendChild(s); var t = setInterval(function () { if (window.Stripe) { clearInterval(t); ok(); } }, 100); });
         co = await Stripe(pk).initEmbeddedCheckout({ fetchClientSecret: async function () { return secret; }, onComplete: function () { setTimeout(function () { done('paid'); }, 600); } });
         if (closed) { co.destroy(); return; }
         o.querySelector('#umb-mount').innerHTML = '';
@@ -438,39 +502,55 @@ window.umbrellaAccountState = function (email) {
       } catch (e) { done('failed'); }
     });
   };
+
+  // The signed-in account window. The add-on asks the browser's plain confirm() before signing
+  // out; that box is replaced here: the confirm is answered "no" and this window opens instead,
+  // and its Sign out button runs the add-on's sign-out again with the answer "yes".
+  var nativeConfirm = window.confirm ? window.confirm.bind(window) : null;
+  var forceYes = false;
+  window.confirm = function (msg) {
+    var m = /^Signed in as (.+?)\.\s/.exec(String(msg || ''));
+    if (!m) return nativeConfirm ? nativeConfirm(msg) : false;
+    if (forceYes) { forceYes = false; return true; }
+    setTimeout(function () { window.umbrellaAccountUI(m[1]); }, 0);
+    return false;
+  };
+  window.umbrellaAccountUI = function (email) {
+    var old = document.getElementById('umb-acc'); if (old) old.remove();
+    var o = el('<div id="umb-acc" class="umb-ov" role="dialog" aria-modal="true" aria-label="Your account"><div class="umb-card">' +
+      '<button class="umb-x" type="button" aria-label="Close">\u2715</button>' +
+      hero('Your account', 'Everything you buy in ' + esc(game) + ' is saved to this account.') +
+      '<div class="umb-body"><div class="umb-who"><div class="umb-ava">' + esc(email.charAt(0).toUpperCase()) + '</div><div><b>' + esc(email) + '</b><small>\u2713 Signed in on this device</small></div></div>' +
+      '<button class="umb-go" type="button"><span class="umb-t">Back to the game</span></button>' +
+      '<button class="umb-out" type="button">Sign out of this device</button></div>' +
+      '<div class="umb-foot">Signing out keeps your purchases safe on your account. Sign in again any time with a quick email code.</div>' +
+      '</div></div>');
+    shield(o);
+    document.body.appendChild(o);
+    var close = function () { o.remove(); };
+    o.querySelector('.umb-x').onclick = close;
+    o.querySelector('.umb-go').onclick = close;
+    o.addEventListener('click', function (e) { if (e.target === o) close(); });
+    o.querySelector('.umb-out').onclick = function () {
+      close();
+      forceYes = true;
+      if (window.umbrellaAccount) window.umbrellaAccount();
+      setTimeout(function () { forceYes = false; }, 3000);
+    };
+  };
+  // Matt, 29 Nov: Google Pay showed ~10 s after checkout opened. Warm up Stripe early:
+  // connect to its servers at once and fetch Stripe.js quietly once the game has started.
+  ['https://js.stripe.com', 'https://api.stripe.com', 'https://m.stripe.network', 'https://pay.google.com'].forEach(function (u) {
+    var l = document.createElement('link'); l.rel = 'preconnect'; l.href = u; l.crossOrigin = ''; document.head.appendChild(l);
+  });
+  function warm() {
+    if (window.Stripe || document.getElementById('umb-stripe-js')) return;
+    var s = document.createElement('script'); s.id = 'umb-stripe-js'; s.async = true; s.src = 'https://js.stripe.com/v3/';
+    document.head.appendChild(s);
+  }
+  window.addEventListener('load', function () { setTimeout(warm, 4000); });
 })();
 </script>
-<!-- umb-loader -->
-<link rel="preload" as="image" href="loading-p.jpg" media="(max-aspect-ratio: 1/1)" fetchpriority="high">
-<link rel="preload" as="image" href="loading-w.jpg" media="(min-aspect-ratio: 1/1)" fetchpriority="high">
-<style id="umb-loader-css">
-html, body { background: #c99c4f !important; }
-#status { visibility: visible !important; background: #c99c4f url(loading-p.jpg) center / cover no-repeat !important; }
-@media (min-aspect-ratio: 1/1) { #status { background-image: url(loading-w.jpg) !important; } }
-html.umb-wide #status { top: 40px !important; }
-#status::before, #status-splash { display: none !important; }
-#status-progress { -webkit-appearance: none; appearance: none; position: absolute; bottom: calc(4% + env(safe-area-inset-bottom, 0px)) !important; left: 20% !important; right: 20% !important; width: 60% !important; height: 8px; border: 0; border-radius: 99px; background: rgba(0,0,0,.35); overflow: hidden; }
-#status-progress::-webkit-progress-bar { background: rgba(0,0,0,.35); border-radius: 99px; }
-#status-progress::-webkit-progress-value { background: #fff; border-radius: 99px; }
-#status-progress::-moz-progress-bar { background: #fff; border-radius: 99px; }
-</style>
-<script id="umb-loader-js">
-// once the download bar is full the game is still starting up: keep the bar moving so it never looks stuck
-(function () {
-  var t = setInterval(function () {
-    var p = document.getElementById('status-progress');
-    if (!p || !p.isConnected) return clearInterval(t);
-    if (p.max && p.value >= p.max) { p.classList.add('starting'); p.removeAttribute('value'); }
-  }, 150);
-})();
-</script>
-<style>
-#status-progress.starting, #status-progress:indeterminate { background: linear-gradient(90deg, rgba(255,255,255,.25) 0%, #fff 50%, rgba(255,255,255,.25) 100%) 0 0 / 200% 100% !important; animation: umbstart 1.1s linear infinite; }
-#status-progress:indeterminate::-webkit-progress-bar { background: transparent; }
-#status-progress:indeterminate::-moz-progress-bar { background: transparent; }
-@keyframes umbstart { from { background-position: 200% 0; } to { background-position: 0 0; } }
-</style>
-<!-- /umb-loader -->
 </head>
 	<body><div id="umb-bar"><div class="umb-l"><a class="umb-home" href="/" target="_blank" rel="noopener"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#e8613c"/><path d="M12 34a20 20 0 0 1 40 0c-3-3-7-3-10 0-3-3-7-3-10 0-3-3-7-3-10 0-3-3-7-3-10 0z" fill="#fff"/><path d="M32 34v14a4 4 0 0 1-8 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg><span><b>Umbrella</b>Software</span></a><span class="umb-sep"></span><span class="umb-bgame"><img src="index.144x144.png" alt="">Rootbound</span></div><button id="umb-acct" type="button" onclick="window.umbrellaAccount&amp;&amp;window.umbrellaAccount()">Sign in</button></div><button id="umb-tab" type="button" aria-label="Sign in" onclick="window.umbrellaAccount&amp;&amp;window.umbrellaAccount()"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#e8613c"/><path d="M12 34a20 20 0 0 1 40 0c-3-3-7-3-10 0-3-3-7-3-10 0-3-3-7-3-10 0-3-3-7-3-10 0z" fill="#fff"/><path d="M32 34v14a4 4 0 0 1-8 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg><span>Sign in</span></button>
 		<canvas id="canvas">
